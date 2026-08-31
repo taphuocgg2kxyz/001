@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>403 / 404 — Cyber Error</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at center, #101525 0%, #05060a 45%, #000 100%);
+    color: white;
+    font-family: "Orbitron", sans-serif;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,.025) 0px,
+        rgba(255,255,255,.025) 1px,
+        transparent 1px,
+        transparent 4px
+    );
+    z-index: 10;
+}
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+}
+
+.card {
+    position: relative;
+    width: min(500px, 90vw);
+    min-height: 520px;
+    padding: 60px 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    background: rgba(8, 10, 18, .78);
+    border: 1px solid rgba(0, 255, 255, .35);
+    box-shadow:
+        0 0 25px rgba(0,255,255,.12),
+        inset 0 0 40px rgba(0,255,255,.035);
+
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+}
+
+.card::before,
+.card::after {
+    content: "";
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    border-color: #00ffff;
+    border-style: solid;
+}
+
+.card::before {
+    top: 15px;
+    left: 15px;
+    border-width: 2px 0 0 2px;
+}
+
+.card::after {
+    bottom: 15px;
+    right: 15px;
+    border-width: 0 2px 2px 0;
+}
+
+.card.red {
+    border-color: rgba(255, 40, 90, .4);
+    box-shadow:
+        0 0 25px rgba(255, 0, 70, .15),
+        inset 0 0 40px rgba(255, 0, 70, .035);
+}
+
+.card.red::before,
+.card.red::after {
+    border-color: #ff285c;
+}
+
+.code {
+    font-size: clamp(100px, 15vw, 160px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -8px;
+    position: relative;
+    color: #00ffff;
+    text-shadow:
+        0 0 5px #00ffff,
+        0 0 20px #00ffff,
+        0 0 50px rgba(0,255,255,.7);
+    animation: flicker 3s infinite;
+}
+
+.red .code {
+    color: #ff285c;
+    text-shadow:
+        0 0 5px #ff285c,
+        0 0 20px #ff285c,
+        0 0 50px rgba(255,40,90,.7);
+}
+
+.code::before,
+.code::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.code::before {
+    color: #ff003c;
+    transform: translate(-3px, 1px);
+    clip-path: inset(40% 0 45% 0);
+    animation: glitch 2s infinite linear alternate-reverse;
+}
+
+.code::after {
+    color: #00ffff;
+    transform: translate(3px, -1px);
+    clip-path: inset(60% 0 20% 0);
+    animation: glitch 1.5s infinite linear alternate-reverse;
+}
+
+.red .code::before {
+    color: #00ffff;
+}
+
+.red .code::after {
+    color: #ff8a00;
+}
+
+.title {
+    margin-top: 35px;
+    font-size: 25px;
+    letter-spacing: 4px;
+}
+
+.subtitle {
+    margin-top: 18px;
+    max-width: 380px;
+    color: #88909f;
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.status {
+    margin-top: 25px;
+    font-family: monospace;
+    color: #00ffff;
+    font-size: 12px;
+}
+
+.red .status {
+    color: #ff285c;
+}
+
+.btn {
+    margin-top: 35px;
+    padding: 14px 28px;
+    color: #00ffff;
+    background: transparent;
+    border: 1px solid #00ffff;
+    font-family: "Orbitron", sans-serif;
+    font-weight: 600;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: .25s;
+    text-decoration: none;
+}
+
+.btn:hover {
+    color: #000;
+    background: #00ffff;
+    box-shadow:
+        0 0 15px #00ffff,
+        0 0 40px rgba(0,255,255,.5);
+}
+
+.red .btn {
+    color: #ff285c;
+    border-color: #ff285c;
+}
+
+.red .btn:hover {
+    color: #000;
+    background: #ff285c;
+    box-shadow:
+        0 0 15px #ff285c,
+        0 0 40px rgba(255,40,90,.5);
+}
+
+.corner {
+    position: absolute;
+    top: 25px;
+    right: 30px;
+    font-size: 10px;
+    color: #444b58;
+}
+
+@keyframes glitch {
+    0%   { transform: translate(0); }
+    20%  { transform: translate(-5px, 2px); }
+    40%  { transform: translate(5px, -2px); }
+    60%  { transform: translate(-2px, -1px); }
+    80%  { transform: translate(3px, 2px); }
+    100% { transform: translate(0); }
+}
+
+@keyframes flicker {
+    0%, 18%, 22%, 63%, 65%, 100% {
+        opacity: 1;
+    }
+    20%, 64% {
+        opacity: .75;
+    }
+}
+
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+        padding: 25px;
+    }
+
+    .card {
+        min-height: 450px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- 404 -->
+    <section class="card">
+        <div class="corner">SYSTEM // 404</div>
+
+        <div class="code" data-text="404">404</div>
+
+        <div class="title">LOST IN THE VOID</div>
+
+        <div class="subtitle">
+            The page you're looking for has vanished
+            into the digital void.
+        </div>
+
+        <div class="status">
+            ● SIGNAL: NOT FOUND
+        </div>
+
+        <a href="/" class="btn">GO BACK</a>
+    </section>
+
+</div>
+
+</body>
+</html>
