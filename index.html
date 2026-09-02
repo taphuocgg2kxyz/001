@@ -3,103 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm tra Địa chỉ IP</title>
+    <title>Localhost Stress Test Tool</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
         body {
-            background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: monospace;
+            background-color: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
         }
-        .card {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #00ff00;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+        input, button {
             width: 100%;
-            max-width: 450px;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            background: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            font-family: monospace;
         }
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .info-group {
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-        }
-        .label {
+        button {
+            cursor: pointer;
             font-weight: bold;
-            color: #666;
         }
-        .value {
-            color: #007bff;
-            font-weight: 600;
+        button:hover {
+            background-color: #00ff00;
+            color: #000;
         }
-        #ip {
-            font-size: 1.2rem;
-            color: #28a745;
-        }
-        .loading {
-            text-align: center;
-            color: #888;
+        .stats {
+            margin-top: 20px;
+            border-top: 1px dashed #00ff00;
+            padding-top: 10px;
         }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Thông tin IP của bạn</h2>
-    <div id="content" class="loading">Đang tải dữ liệu...</div>
+<div class="container">
+    <h2>⚡ Localhost Stress Tester</h2>
+    
+    <label>URL Cần Test:</label>
+    <input type="text" id="targetUrl" value="http://localhost:3000/api/test">
+
+    <label>Số Luồng Đồng Thời (Concurrency):</label>
+    <input type="number" id="concurrency" value="10">
+
+    <button id="toggleBtn" onclick="toggleTest()">BẮT ĐẦU TEST</button>
+
+    <div class="stats">
+        <p>Trạng thái: <span id="status">Tạm dừng</span></p>
+        <p>Thành công (2xx): <span id="successCount">0</span></p>
+        <p>Thất bại (Error/Timeout): <span id="failCount">0</span></p>
+        <p>Tốc độ: <span id="rps">0</span> req/s</p>
+    </div>
 </div>
 
 <script>
-    async function checkIP() {
+    let isRunning = false;
+    let successCount = 0;
+    let failCount = 0;
+    let requestsInLastSecond = 0;
+    let intervalId = null;
+
+    async function sendRequest(url) {
+        if (!isRunning) return;
         try {
-            const response = await fetch('https://ipapi.co/json/');
-            if (!response.ok) throw new Error('Không thể lấy dữ liệu');
-            
-            const data = await response.json();
-            
-            document.getElementById('content').innerHTML = `
-                <div class="info-group">
-                    <span class="label">Địa chỉ IP:</span>
-                    <span class="value" id="ip">${data.ip}</span>
-                </div>
-                <div class="info-group">
-                    <span class="label">Quốc gia:</span>
-                    <span class="value">${data.country_name} (${data.country_code})</span>
-                </div>
-                <div class="info-group">
-                    <span class="label">Thành phố / Tỉnh:</span>
-                    <span class="value">${data.city}, ${data.region}</span>
-                </div>
-                <div class="info-group">
-                    <span class="label">Nhà mạng (ISP):</span>
-                    <span class="value">${data.org || data.asn}</span>
-                </div>
-                <div class="info-group">
-                    <span class="label">Múi giờ:</span>
-                    <span class="value">${data.timezone}</span>
-                </div>
-            `;
-        } catch (error) {
-            document.getElementById('content').innerHTML = `<p style="color:red; text-align:center;">Lỗi: ${error.message}</p>`;
+            // cache: 'no-store' để tránh trình duyệt lưu cache kết quả
+            const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+            if (response.ok) {
+                successCount++;
+            } else {
+                failCount++;
+            }
+        } catch (err) {
+            failCount++;
+        } finally {
+            requestsInLastSecond++;
+            if (isRunning) {
+                // Tiếp tục gửi request tiếp theo ngay khi request này xong
+                sendRequest(url);
+            }
         }
     }
 
-    checkIP();
+    function toggleTest() {
+        const btn = document.getElementById('toggleBtn');
+        const url = document.getElementById('targetUrl').value;
+        const concurrency = parseInt(document.getElementById('concurrency').value) || 5;
+
+        if (!isRunning) {
+            isRunning = true;
+            btn.innerText = "DỪNG TEST";
+            document.getElementById('status').innerText = "Đang chạy...";
+            
+            // Khởi tạo các luồng chạy song song
+            for (let i = 0; i < concurrency; i++) {
+                sendRequest(url);
+            }
+
+            // Tính toán số Request Per Second (RPS)
+            intervalId = setInterval(() => {
+                document.getElementById('successCount').innerText = successCount;
+                document.getElementById('failCount').innerText = failCount;
+                document.getElementById('rps').innerText = requestsInLastSecond;
+                requestsInLastSecond = 0;
+            }, 1000);
+
+        } else {
+            isRunning = false;
+            btn.innerText = "BẮT ĐẦU TEST";
+            document.getElementById('status').innerText = "Tạm dừng";
+            clearInterval(intervalId);
+        }
+    }
 </script>
 
 </body>
-</html>
+                                                    </html>
